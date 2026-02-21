@@ -13,8 +13,8 @@
 	);
 
 	let currentPartitionSpec = $derived(
-		meta['partition-specs'].find((s) => s['spec-id'] === meta['default-spec-id']) ??
-			meta['partition-specs'][0]
+		meta['partition-specs']?.find((s) => s['spec-id'] === meta['default-spec-id']) ??
+			meta['partition-specs']?.[0]
 	);
 
 	let snapshots = $derived([...(meta.snapshots ?? [])].sort((a, b) => b['timestamp-ms'] - a['timestamp-ms']));
@@ -244,7 +244,7 @@
 		</Tabs.Content>
 
 		<Tabs.Content value="properties" class="pt-4">
-			{#if Object.keys(meta.properties).length > 0}
+			{#if meta.properties && Object.keys(meta.properties).length > 0}
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
