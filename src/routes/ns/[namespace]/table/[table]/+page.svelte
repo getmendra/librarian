@@ -3,6 +3,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as Card from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 	import type { StructField, IcebergType, TableMetadata } from '$lib/server/types';
 
 	let { data } = $props();
@@ -81,22 +82,27 @@
 				<span class="text-muted-foreground">Format</span>
 				<Badge variant="secondary" class="ml-1.5">v{meta['format-version']}</Badge>
 			</span>
-			{#if latestSnapshot?.summary['total-records']}
+			{#await data.stats}
 				<span>
 					<span class="text-muted-foreground">Records</span>
-					<span class="ml-1.5 font-medium"
-						>{Number(latestSnapshot.summary['total-records']).toLocaleString()}</span
-					>
+					<Skeleton class="ml-1.5 inline-block h-5 w-16 align-middle" />
 				</span>
-			{/if}
-			{#if latestSnapshot?.summary['total-data-files']}
 				<span>
 					<span class="text-muted-foreground">Files</span>
-					<span class="ml-1.5 font-medium"
-						>{Number(latestSnapshot.summary['total-data-files']).toLocaleString()}</span
-					>
+					<Skeleton class="ml-1.5 inline-block h-5 w-8 align-middle" />
 				</span>
-			{/if}
+			{:then stats}
+				{#if stats}
+					<span>
+						<span class="text-muted-foreground">Records</span>
+						<span class="ml-1.5 font-medium">{stats.totalRecords.toLocaleString()}</span>
+					</span>
+					<span>
+						<span class="text-muted-foreground">Files</span>
+						<span class="ml-1.5 font-medium">{stats.totalDataFiles.toLocaleString()}</span>
+					</span>
+				{/if}
+			{/await}
 			{#if snapshots.length > 0}
 				<span>
 					<span class="text-muted-foreground">Snapshots</span>

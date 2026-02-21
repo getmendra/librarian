@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Table from '$lib/components/ui/table';
 	import { Badge } from '$lib/components/ui/badge';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 
 	let { data } = $props();
 
@@ -40,35 +41,65 @@
 				</Table.Row>
 			</Table.Header>
 			<Table.Body>
-				{#each data.tables as table}
-					<Table.Row class="cursor-pointer" onclick={() => window.location.href = `/ns/${encodeURIComponent(data.namespace)}/table/${encodeURIComponent(table.name)}`}>
-						<Table.Cell>
-							<a
-								href="/ns/{encodeURIComponent(data.namespace)}/table/{encodeURIComponent(table.name)}"
-								class="font-medium hover:underline"
-							>
-								{table.name}
-							</a>
-						</Table.Cell>
-						<Table.Cell>
-							{#if table.formatVersion}
-								<Badge variant="secondary">v{table.formatVersion}</Badge>
-							{/if}
-						</Table.Cell>
-						<Table.Cell class="text-right text-muted-foreground">
-							{table.columns}
-						</Table.Cell>
-						<Table.Cell class="text-right font-mono text-sm text-muted-foreground">
-							{table.totalRecords ? Number(table.totalRecords).toLocaleString() : '-'}
-						</Table.Cell>
-						<Table.Cell class="text-right font-mono text-sm text-muted-foreground">
-							{table.totalFiles ? Number(table.totalFiles).toLocaleString() : '-'}
-						</Table.Cell>
-						<Table.Cell class="text-right text-sm text-muted-foreground">
-							{timeAgo(table.lastUpdated)}
-						</Table.Cell>
-					</Table.Row>
-				{/each}
+				{#await data.tableStats}
+					{#each data.tables as name}
+						<Table.Row
+							class="cursor-pointer"
+							onclick={() =>
+								(window.location.href = `/ns/${encodeURIComponent(data.namespace)}/table/${encodeURIComponent(name)}`)}
+						>
+							<Table.Cell>
+								<a
+									href="/ns/{encodeURIComponent(data.namespace)}/table/{encodeURIComponent(name)}"
+									class="font-medium hover:underline"
+								>
+									{name}
+								</a>
+							</Table.Cell>
+							<Table.Cell><Skeleton class="h-5 w-8" /></Table.Cell>
+							<Table.Cell class="text-right"><Skeleton class="ml-auto h-5 w-6" /></Table.Cell>
+							<Table.Cell class="text-right"><Skeleton class="ml-auto h-5 w-12" /></Table.Cell>
+							<Table.Cell class="text-right"><Skeleton class="ml-auto h-5 w-6" /></Table.Cell>
+							<Table.Cell class="text-right"><Skeleton class="ml-auto h-5 w-16" /></Table.Cell>
+						</Table.Row>
+					{/each}
+				{:then tableStats}
+					{#each tableStats as table}
+						<Table.Row
+							class="cursor-pointer"
+							onclick={() =>
+								(window.location.href = `/ns/${encodeURIComponent(data.namespace)}/table/${encodeURIComponent(table.name)}`)}
+						>
+							<Table.Cell>
+								<a
+									href="/ns/{encodeURIComponent(data.namespace)}/table/{encodeURIComponent(table.name)}"
+									class="font-medium hover:underline"
+								>
+									{table.name}
+								</a>
+							</Table.Cell>
+							<Table.Cell>
+								{#if table.formatVersion}
+									<Badge variant="secondary">v{table.formatVersion}</Badge>
+								{/if}
+							</Table.Cell>
+							<Table.Cell class="text-right text-muted-foreground">
+								{table.columns}
+							</Table.Cell>
+							<Table.Cell class="text-right font-mono text-sm text-muted-foreground">
+								{table.totalRecords != null ? Number(table.totalRecords).toLocaleString() : '-'}
+							</Table.Cell>
+							<Table.Cell class="text-right font-mono text-sm text-muted-foreground">
+								{table.totalDataFiles != null
+									? Number(table.totalDataFiles).toLocaleString()
+									: '-'}
+							</Table.Cell>
+							<Table.Cell class="text-right text-sm text-muted-foreground">
+								{timeAgo(table.lastUpdated)}
+							</Table.Cell>
+						</Table.Row>
+					{/each}
+				{/await}
 			</Table.Body>
 		</Table.Root>
 	{:else}

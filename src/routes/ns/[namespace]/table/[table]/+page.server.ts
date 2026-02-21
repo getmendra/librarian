@@ -1,11 +1,12 @@
 import type { PageServerLoad } from './$types';
-import { loadTable } from '$lib/server/iceberg';
+import { loadTable, loadTableStats } from '$lib/server/iceberg';
 
 export const load: PageServerLoad = async ({ params }) => {
-	const { metadata } = await loadTable(params.namespace, params.table);
+	const result = await loadTable(params.namespace, params.table);
 	return {
 		namespace: params.namespace,
 		table: params.table,
-		metadata
+		metadata: result.metadata,
+		stats: loadTableStats(result)
 	};
 };

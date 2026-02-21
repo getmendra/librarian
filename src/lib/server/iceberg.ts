@@ -138,38 +138,36 @@ async function fetchManifestStats(
 }
 
 /**
- * Load table via REST API, then enrich snapshot summaries with stats
- * computed from the manifest list if the catalog didn't provide them.
+ * Load table metadata via REST API (fast, no manifest fetch).
  */
-export async function loadTable(ns: string, table: string): Promise<LoadTableResponse> {
-	const result = await get<LoadTableResponse>(
-		`/namespaces/${encodeURIComponent(ns)}/tables/${encodeURIComponent(table)}`
-	);
+export function loadTable(ns: string, table: string): Promise<LoadTableResponse> {
+	return get(`/namespaces/${encodeURIComponent(ns)}/tables/${encodeURIComponent(table)}`);
+}
 
-	// If snapshots already have stats, no need to fetch manifests
-	const hasStats = result.metadata.snapshots?.some((s) => s.summary['total-records']);
-	if (hasStats) return result;
-
-	// Need credentials for R2 access
-	const creds = result.config ? extractS3Creds(result.config) : null;
-	if (!creds) return result;
-
-	// Find the current snapshot and enrich its summary
+/**
+ * Fetch stats from manifest list for a table's current snapshot.
+ * Returns null if stats are unavailable.
+ */
+export async function loadTableStats(result: LoadTableResponse): Promise<TableStats | null> {
+	// If snapshots already have stats, use them
 	const currentSnapshotId = result.metadata['current-snapshot-id'];
 	const currentSnapshot = result.metadata.snapshots?.find(
 		(s) => s['snapshot-id'] === currentSnapshotId
 	);
-	if (!currentSnapshot?.['manifest-list']) return result;
-
-	try {
-		const stats = await fetchManifestStats(currentSnapshot['manifest-list'], creds);
-		if (stats) {
-			currentSnapshot.summary['total-records'] = String(stats.totalRecords);
-			currentSnapshot.summary['total-data-files'] = String(stats.totalDataFiles);
-		}
-	} catch (e) {
-		console.log('manifest fetch error:', e);
+	if (currentSnapshot?.summary['total-records']) {
+		return {
+			totalRecords: Number(currentSnapshot.summary['total-records']),
+			totalDataFiles: Number(currentSnapshot.summary['total-data-files'] ?? 0)
+		};
 	}
 
-	return result;
+	// Need credentials for R2 access
+	const creds = result.config ? extractS3Creds(result.config) : null;
+	if (!creds || !currentSnapshot?.['manifest-list']) return null;
+
+	try {
+		return await fetchManifestStats(currentSnapshot['manifest-list'], creds);
+	} catch {
+		return null;
+	}
 }
