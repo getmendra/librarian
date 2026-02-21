@@ -1,35 +1,26 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
 	let { data } = $props();
 </script>
 
-<div class="space-y-6">
-	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">Namespaces</h1>
-		<p class="text-sm text-muted-foreground">Browse namespaces in the catalog</p>
-	</div>
+<div class="space-y-4">
+	<h1 class="text-lg font-medium">Namespaces</h1>
 
-	<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-		{#each data.namespaces as ns}
-			{@const name = ns.join('.')}
-			<a href="/ns/{encodeURIComponent(name)}">
-				<Card.Root class="transition-colors hover:bg-accent">
-					<Card.Header>
-						<Card.Title class="flex items-center gap-2">
-							{name}
-							{#if ns.length > 1}
-								<Badge variant="secondary">nested</Badge>
-							{/if}
-						</Card.Title>
-					</Card.Header>
-				</Card.Root>
-			</a>
-		{/each}
-	</div>
-
-	{#if data.namespaces.length === 0}
-		<p class="text-muted-foreground">No namespaces found.</p>
+	{#if data.namespaces.length > 0}
+		<div class="divide-y divide-border rounded-lg border">
+			{#each data.namespaces as ns}
+				{@const name = ns.join('.')}
+				<a
+					href="/ns/{encodeURIComponent(name)}"
+					class="flex items-center justify-between px-4 py-3 transition-colors hover:bg-muted/50"
+				>
+					<span class="font-medium">{name}</span>
+					<ChevronRight class="size-4 text-muted-foreground" />
+				</a>
+			{/each}
+		</div>
+	{:else}
+		<p class="text-sm text-muted-foreground">No namespaces found.</p>
 	{/if}
 </div>
