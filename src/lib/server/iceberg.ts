@@ -101,13 +101,38 @@ export interface TableStats {
 	totalDataFiles: number;
 }
 
+/** Cache key prefix for manifest stats in the CF Cache API. */
+const CACHE_PREFIX = 'https://librarian-cache/manifest-stats/';
+
+async function getCachedStats(manifestListUri: string): Promise<TableStats | null> {
+	const cache = await caches.open('manifest-stats');
+	const res = await cache.match(new Request(CACHE_PREFIX + encodeURIComponent(manifestListUri)));
+	if (!res) return null;
+	return res.json();
+}
+
+async function putCachedStats(manifestListUri: string, stats: TableStats): Promise<void> {
+	const cache = await caches.open('manifest-stats');
+	await cache.put(
+		new Request(CACHE_PREFIX + encodeURIComponent(manifestListUri)),
+		new Response(JSON.stringify(stats), {
+			headers: { 'Content-Type': 'application/json' }
+		})
+	);
+}
+
 /**
  * Read the manifest list for a snapshot and compute total records and files.
+ * Results are cached via the CF Cache API — manifest list URIs are immutable
+ * (new snapshot = new URI), so entries never go stale.
  */
 async function fetchManifestStats(
 	manifestListUri: string,
 	creds: S3Credentials
 ): Promise<TableStats | null> {
+	const cached = await getCachedStats(manifestListUri);
+	if (cached) return cached;
+
 	const { bucket, key } = parseS3Uri(manifestListUri);
 	const res = await s3Get(bucket, key, creds);
 	if (!res.ok) return null;
@@ -134,7 +159,11 @@ async function fetchManifestStats(
 			((m.deleted_files_count as number) ?? 0);
 	}
 
-	return { totalRecords, totalDataFiles };
+	const stats = { totalRecords, totalDataFiles };
+	// Fire-and-forget — don't block the response on cache write
+	putCachedStats(manifestListUri, stats).catch(() => {});
+
+	return stats;
 }
 
 /**
