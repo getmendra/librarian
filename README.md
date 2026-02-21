@@ -1,6 +1,6 @@
 # <img src="src/lib/assets/favicon.svg" width="24" height="24" alt="Librarian logo"> Librarian
 
-![Librarian screenshot](screenshot.png)
+![Librarian screenshot](https://github.com/user-attachments/assets/8e8541a5-ec91-4957-b9fc-5cdd5470aece)
 
 Read-only Iceberg catalog explorer for Cloudflare R2 Data Catalog. Deploys as a Cloudflare Worker.
 
