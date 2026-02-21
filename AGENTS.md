@@ -21,3 +21,4 @@ Read-only Iceberg catalog explorer for Cloudflare R2 Data Catalog.
 - No write/mutate operations
 - No in-app auth configuration (CF Access is external)
 - No Cloudflare Management API usage
+- No SQL query support

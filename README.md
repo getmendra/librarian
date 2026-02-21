@@ -1,42 +1,34 @@
-# sv
+# <img src="src/lib/assets/favicon.svg" width="24" height="24" alt="Librarian logo"> Librarian
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+![Librarian screenshot](screenshot.png)
 
-## Creating a project
+Read-only Iceberg catalog explorer for Cloudflare R2 Data Catalog. Deploys as a Cloudflare Worker.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Features
 
-```sh
-# create a new project
-npx sv create my-app
-```
+- Browse namespaces and tables
+- Inspect schemas, partitions, snapshots, and table properties
+- Record and file counts computed from Iceberg manifests fetched directly from R2
 
-To recreate this project with the same configuration:
+## Setup
 
-```sh
-# recreate this project
-pnpm dlx sv create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" tailwindcss="plugins:none" sveltekit-adapter="adapter:cloudflare+cfTarget:workers" --install pnpm librarian
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Copy `.env.example` to `.env` and fill in your values. Set the catalog token secret:
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+wrangler secret put CATALOG_TOKEN
 ```
 
-## Building
-
-To create a production version of your app:
+## Development
 
 ```sh
-npm run build
+pnpm install
+pnpm dev
 ```
 
-You can preview the production build with `npm run preview`.
+CF Access auth is bypassed in dev mode.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## Deploy
+
+```sh
+pnpm deploy
+```
