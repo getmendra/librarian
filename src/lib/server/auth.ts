@@ -1,7 +1,8 @@
-import { TEAM_DOMAIN, POLICY_AUD } from '$env/static/private';
+import { CF_ACCESS_TEAM, POLICY_AUD } from '$env/static/private';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 
-const jwks = createRemoteJWKSet(new URL(`${TEAM_DOMAIN}/cdn-cgi/access/certs`));
+const teamDomain = `https://${CF_ACCESS_TEAM}.cloudflareaccess.com`;
+const jwks = createRemoteJWKSet(new URL(`${teamDomain}/cdn-cgi/access/certs`));
 
 export async function validateAccess(request: Request): Promise<void> {
 	const token =
@@ -14,7 +15,7 @@ export async function validateAccess(request: Request): Promise<void> {
 
 	await jwtVerify(token, jwks, {
 		audience: POLICY_AUD,
-		issuer: TEAM_DOMAIN
+		issuer: teamDomain
 	});
 }
 
