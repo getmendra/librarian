@@ -81,18 +81,32 @@
 				<span class="text-muted-foreground">Format</span>
 				<Badge variant="secondary" class="ml-1.5">v{meta['format-version']}</Badge>
 			</span>
-			{#if latestSnapshot}
+			{#if latestSnapshot?.summary['total-records']}
 				<span>
 					<span class="text-muted-foreground">Records</span>
 					<span class="ml-1.5 font-medium"
-						>{Number(latestSnapshot.summary['total-records'] ?? 0).toLocaleString()}</span
+						>{Number(latestSnapshot.summary['total-records']).toLocaleString()}</span
 					>
 				</span>
+			{/if}
+			{#if latestSnapshot?.summary['total-data-files']}
 				<span>
 					<span class="text-muted-foreground">Files</span>
 					<span class="ml-1.5 font-medium"
-						>{Number(latestSnapshot.summary['total-data-files'] ?? 0).toLocaleString()}</span
+						>{Number(latestSnapshot.summary['total-data-files']).toLocaleString()}</span
 					>
+				</span>
+			{/if}
+			{#if snapshots.length > 0}
+				<span>
+					<span class="text-muted-foreground">Snapshots</span>
+					<span class="ml-1.5 font-medium">{snapshots.length}</span>
+				</span>
+			{/if}
+			{#if meta['last-updated-ms']}
+				<span>
+					<span class="text-muted-foreground">Updated</span>
+					<span class="ml-1.5 font-medium">{new Date(meta['last-updated-ms']).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
 				</span>
 			{/if}
 			<span class="text-muted-foreground font-mono text-xs">{meta['table-uuid']}</span>

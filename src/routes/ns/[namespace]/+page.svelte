@@ -1,7 +1,22 @@
 <script lang="ts">
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import * as Table from '$lib/components/ui/table';
+	import { Badge } from '$lib/components/ui/badge';
 
 	let { data } = $props();
+
+	function timeAgo(ms: number | null): string {
+		if (!ms) return '-';
+		const seconds = Math.floor((Date.now() - ms) / 1000);
+		if (seconds < 60) return 'just now';
+		const minutes = Math.floor(seconds / 60);
+		if (minutes < 60) return `${minutes}m ago`;
+		const hours = Math.floor(minutes / 60);
+		if (hours < 24) return `${hours}h ago`;
+		const days = Math.floor(hours / 24);
+		if (days < 30) return `${days}d ago`;
+		const months = Math.floor(days / 30);
+		return `${months}mo ago`;
+	}
 </script>
 
 <div class="space-y-4">
@@ -13,17 +28,49 @@
 	</div>
 
 	{#if data.tables.length > 0}
-		<div class="divide-y divide-border rounded-lg border">
-			{#each data.tables as table}
-				<a
-					href="/ns/{encodeURIComponent(data.namespace)}/table/{encodeURIComponent(table.name)}"
-					class="flex items-center justify-between px-4 py-3 transition-colors hover:bg-muted/50"
-				>
-					<span class="font-medium">{table.name}</span>
-					<ChevronRight class="size-4 text-muted-foreground" />
-				</a>
-			{/each}
-		</div>
+		<Table.Root>
+			<Table.Header>
+				<Table.Row>
+					<Table.Head>Name</Table.Head>
+					<Table.Head class="w-20">Format</Table.Head>
+					<Table.Head class="w-24 text-right">Columns</Table.Head>
+					<Table.Head class="w-28 text-right">Records</Table.Head>
+					<Table.Head class="w-24 text-right">Files</Table.Head>
+					<Table.Head class="w-32 text-right">Updated</Table.Head>
+				</Table.Row>
+			</Table.Header>
+			<Table.Body>
+				{#each data.tables as table}
+					<Table.Row class="cursor-pointer" onclick={() => window.location.href = `/ns/${encodeURIComponent(data.namespace)}/table/${encodeURIComponent(table.name)}`}>
+						<Table.Cell>
+							<a
+								href="/ns/{encodeURIComponent(data.namespace)}/table/{encodeURIComponent(table.name)}"
+								class="font-medium hover:underline"
+							>
+								{table.name}
+							</a>
+						</Table.Cell>
+						<Table.Cell>
+							{#if table.formatVersion}
+								<Badge variant="secondary">v{table.formatVersion}</Badge>
+							{/if}
+						</Table.Cell>
+						<Table.Cell class="text-right text-muted-foreground">
+							{table.columns}
+						</Table.Cell>
+						<Table.Cell class="text-right font-mono text-sm text-muted-foreground">
+							{table.totalRecords ? Number(table.totalRecords).toLocaleString() : '-'}
+						</Table.Cell>
+						<Table.Cell class="text-right font-mono text-sm text-muted-foreground">
+							{table.totalFiles ? Number(table.totalFiles).toLocaleString() : '-'}
+						</Table.Cell>
+						<Table.Cell class="text-right text-sm text-muted-foreground">
+							{timeAgo(table.lastUpdated)}
+						</Table.Cell>
+					</Table.Row>
+				{/each}
+			</Table.Body>
+		</Table.Root>
 	{:else}
 		<p class="text-sm text-muted-foreground">No tables in this namespace.</p>
 	{/if}
