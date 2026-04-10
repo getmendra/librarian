@@ -119,19 +119,20 @@ async function fetchManifestStats(
 	let totalDataFiles = 0;
 
 	for (const m of manifests) {
-		// content: 0 = data, 1 = deletes — only count data manifests
 		const content = (m.content as number) ?? 0;
-		if (content !== 0) continue;
-
-		totalRecords +=
-			((m.added_rows_count as number) ?? 0) +
-			((m.existing_rows_count as number) ?? 0) -
-			((m.deleted_rows_count as number) ?? 0);
-
-		totalDataFiles +=
-			((m.added_files_count as number) ?? 0) +
-			((m.existing_files_count as number) ?? 0) -
-			((m.deleted_files_count as number) ?? 0);
+		// Live rows/files = ADDED + EXISTING status (DELETED status entries are not live)
+		const liveRows =
+			((m.added_rows_count as number) ?? 0) + ((m.existing_rows_count as number) ?? 0);
+		if (content === 0) {
+			// Data manifests: count live data file rows
+			totalRecords += liveRows;
+			totalDataFiles +=
+				((m.added_files_count as number) ?? 0) + ((m.existing_files_count as number) ?? 0);
+		} else {
+			// Delete manifests (content=1): subtract row-level deletes
+			totalRecords -=
+				liveRows + ((m.deleted_rows_count as number) ?? 0);
+		}
 	}
 
 	return { totalRecords, totalDataFiles };
