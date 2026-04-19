@@ -1,24 +1,20 @@
 <script lang="ts">
-	import { z } from 'zod';
+	import { browser } from '$app/environment';
 	import { useSearchParams } from 'runed/kit';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import * as Table from '$lib/components/ui/table';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import type { StructField, IcebergType, TableMetadata } from '$lib/server/types';
-
-	const tabSearchParams = useSearchParams(
-		z.object({
-			tab: z.enum(['schema', 'partitions', 'snapshots', 'properties']).default('schema')
-		}),
-		{
-			pushHistory: false,
-			noScroll: true
-		}
-	);
+	import { tabSchema } from './search-params';
 
 	let { data } = $props();
 	let meta: TableMetadata = $derived(data.metadata);
+	const tabSearchParams = useSearchParams(tabSchema, {
+		pushHistory: false,
+		noScroll: true
+	});
+	let selectedTab = $derived(browser ? tabSearchParams.tab : data.tab);
 
 	let currentSchema = $derived(
 		meta.schemas.find((s) => s['schema-id'] === meta['current-schema-id']) ?? meta.schemas[0]
@@ -130,7 +126,10 @@
 		</div>
 	</div>
 
-	<Tabs.Root bind:value={tabSearchParams.tab}>
+	<Tabs.Root
+		value={selectedTab}
+		onValueChange={(value) => (tabSearchParams.tab = tabSchema.shape.tab.parse(value))}
+	>
 		<Tabs.List>
 			<Tabs.Trigger value="schema">Schema</Tabs.Trigger>
 			<Tabs.Trigger value="partitions">Partitions</Tabs.Trigger>
