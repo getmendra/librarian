@@ -1,10 +1,21 @@
 <script lang="ts">
+	import { z } from 'zod';
+	import { useSearchParams } from 'runed/kit';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import * as Table from '$lib/components/ui/table';
-	import * as Card from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import type { StructField, IcebergType, TableMetadata } from '$lib/server/types';
+
+	const tabSearchParams = useSearchParams(
+		z.object({
+			tab: z.enum(['schema', 'partitions', 'snapshots', 'properties']).default('schema')
+		}),
+		{
+			pushHistory: false,
+			noScroll: true
+		}
+	);
 
 	let { data } = $props();
 	let meta: TableMetadata = $derived(data.metadata);
@@ -119,7 +130,7 @@
 		</div>
 	</div>
 
-	<Tabs.Root value="schema">
+	<Tabs.Root bind:value={tabSearchParams.tab}>
 		<Tabs.List>
 			<Tabs.Trigger value="schema">Schema</Tabs.Trigger>
 			<Tabs.Trigger value="partitions">Partitions</Tabs.Trigger>
