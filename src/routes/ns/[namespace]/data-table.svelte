@@ -20,6 +20,7 @@
 	} from "$lib/components/ui/data-table";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { Input } from "$lib/components/ui/input";
+	import { Skeleton } from "$lib/components/ui/skeleton";
 	import * as Table from "$lib/components/ui/table";
 	import {
 		namespaceTableSearchParamsSchema,
@@ -39,6 +40,8 @@
 		initialFilter: string;
 		initialSort: "" | SortKey;
 		initialDir: "asc" | "desc";
+		loading?: boolean;
+		loadingRows?: string[];
 	};
 
 	let {
@@ -49,6 +52,8 @@
 		initialFilter,
 		initialSort,
 		initialDir,
+		loading = false,
+		loadingRows = [],
 	}: DataTableProps<TData, TValue> = $props();
 
 	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 100 });
@@ -224,21 +229,42 @@
 				{/each}
 			</Table.Header>
 			<Table.Body>
-				{#each table.getRowModel().rows as row (row.id)}
-					<Table.Row>
-						{#each row.getVisibleCells() as cell (cell.id)}
-							<Table.Cell class={(cell.column.columnDef.meta as ColumnMeta | undefined)?.cellClass}>
-								<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
+				{#if loading}
+					{#each loadingRows as name, index (`loading-${name}-${index}`)}
+						<Table.Row>
+							<Table.Cell class="font-medium">{name}</Table.Cell>
+							<Table.Cell><Skeleton class="h-5 w-8" /></Table.Cell>
+							<Table.Cell class="text-right">
+								<Skeleton class="ml-auto h-5 w-6" />
 							</Table.Cell>
-						{/each}
-					</Table.Row>
+							<Table.Cell class="text-right">
+								<Skeleton class="ml-auto h-5 w-12" />
+							</Table.Cell>
+							<Table.Cell class="text-right">
+								<Skeleton class="ml-auto h-5 w-6" />
+							</Table.Cell>
+							<Table.Cell class="text-right">
+								<Skeleton class="ml-auto h-5 w-16" />
+							</Table.Cell>
+						</Table.Row>
+					{/each}
 				{:else}
-					<Table.Row>
-						<Table.Cell colspan={table.getVisibleLeafColumns().length} class="h-24 text-center">
-							No results.
-						</Table.Cell>
-					</Table.Row>
-				{/each}
+					{#each table.getRowModel().rows as row (row.id)}
+						<Table.Row>
+							{#each row.getVisibleCells() as cell (cell.id)}
+								<Table.Cell class={(cell.column.columnDef.meta as ColumnMeta | undefined)?.cellClass}>
+									<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
+								</Table.Cell>
+							{/each}
+						</Table.Row>
+					{:else}
+						<Table.Row>
+							<Table.Cell colspan={table.getVisibleLeafColumns().length} class="h-24 text-center">
+								No results.
+							</Table.Cell>
+						</Table.Row>
+					{/each}
+				{/if}
 			</Table.Body>
 		</Table.Root>
 	</div>
