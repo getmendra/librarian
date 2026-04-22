@@ -1,18 +1,18 @@
-import { CATALOG_URI, CATALOG_WAREHOUSE } from '$env/static/private';
-import { env } from '$env/dynamic/private';
-import { s3Get, type S3Credentials } from './s3';
-import { parseAvro } from './avro';
+import { CATALOG_URI, CATALOG_WAREHOUSE } from "$env/static/private";
+import { env } from "$env/dynamic/private";
+import { s3Get, type S3Credentials } from "./s3";
+import { parseAvro } from "./avro";
 import type {
 	ListNamespacesResponse,
 	GetNamespaceResponse,
 	ListTablesResponse,
-	LoadTableResponse
-} from './types';
+	LoadTableResponse,
+} from "./types";
 
 function authHeaders(): HeadersInit {
 	return {
 		Authorization: `Bearer ${env.CATALOG_TOKEN}`,
-		Accept: 'application/json'
+		Accept: "application/json",
 	};
 }
 
@@ -28,7 +28,7 @@ function fetchPrefix(): Promise<string> {
 		prefixPromise = (async () => {
 			const res = await fetch(
 				`${CATALOG_URI}/v1/config?warehouse=${encodeURIComponent(CATALOG_WAREHOUSE)}`,
-				{ headers: authHeaders() }
+				{ headers: authHeaders() },
 			);
 			if (!res.ok) {
 				throw new Error(`Failed to fetch catalog config: ${res.status} ${res.statusText}`);
@@ -52,7 +52,7 @@ async function get<T>(path: string): Promise<T> {
 }
 
 export function listNamespaces(): Promise<ListNamespacesResponse> {
-	return get('/namespaces');
+	return get("/namespaces");
 }
 
 export function getNamespace(ns: string): Promise<GetNamespaceResponse> {
@@ -64,36 +64,36 @@ export function listTables(ns: string): Promise<ListTablesResponse> {
 }
 
 function parseS3Uri(uri: string): { bucket: string; key: string } {
-	const withoutScheme = uri.replace(/^s3:\/\//, '');
-	const slashIndex = withoutScheme.indexOf('/');
+	const withoutScheme = uri.replace(/^s3:\/\//, "");
+	const slashIndex = withoutScheme.indexOf("/");
 	return {
 		bucket: withoutScheme.slice(0, slashIndex),
-		key: withoutScheme.slice(slashIndex + 1)
+		key: withoutScheme.slice(slashIndex + 1),
 	};
 }
 
 function extractS3Creds(config: Record<string, string>): S3Credentials | null {
-	const accessKeyId = config['s3.access-key-id'];
-	const secretAccessKey = config['s3.secret-access-key'];
-	const endpoint = config['s3.endpoint'];
+	const accessKeyId = config["s3.access-key-id"];
+	const secretAccessKey = config["s3.secret-access-key"];
+	const endpoint = config["s3.endpoint"];
 	if (!accessKeyId || !secretAccessKey || !endpoint) return null;
 	return {
 		accessKeyId,
 		secretAccessKey,
 		endpoint,
-		region: config['s3.region'] ?? config['region'] ?? 'auto'
+		region: config["s3.region"] ?? config["region"] ?? "auto",
 	};
 }
 
 /** Fields we need from the manifest list Avro file */
 const MANIFEST_LIST_FIELDS = new Set([
-	'content',
-	'added_files_count',
-	'existing_files_count',
-	'deleted_files_count',
-	'added_rows_count',
-	'existing_rows_count',
-	'deleted_rows_count'
+	"content",
+	"added_files_count",
+	"existing_files_count",
+	"deleted_files_count",
+	"added_rows_count",
+	"existing_rows_count",
+	"deleted_rows_count",
 ]);
 
 export interface TableStats {
@@ -106,7 +106,7 @@ export interface TableStats {
  */
 async function fetchManifestStats(
 	manifestListUri: string,
-	creds: S3Credentials
+	creds: S3Credentials,
 ): Promise<TableStats | null> {
 	const { bucket, key } = parseS3Uri(manifestListUri);
 	const res = await s3Get(bucket, key, creds);
@@ -130,8 +130,7 @@ async function fetchManifestStats(
 				((m.added_files_count as number) ?? 0) + ((m.existing_files_count as number) ?? 0);
 		} else {
 			// Delete manifests (content=1): subtract row-level deletes
-			totalRecords -=
-				liveRows + ((m.deleted_rows_count as number) ?? 0);
+			totalRecords -= liveRows + ((m.deleted_rows_count as number) ?? 0);
 		}
 	}
 
@@ -151,23 +150,23 @@ export function loadTable(ns: string, table: string): Promise<LoadTableResponse>
  */
 export async function loadTableStats(result: LoadTableResponse): Promise<TableStats | null> {
 	// If snapshots already have stats, use them
-	const currentSnapshotId = result.metadata['current-snapshot-id'];
+	const currentSnapshotId = result.metadata["current-snapshot-id"];
 	const currentSnapshot = result.metadata.snapshots?.find(
-		(s) => s['snapshot-id'] === currentSnapshotId
+		(s) => s["snapshot-id"] === currentSnapshotId,
 	);
-	if (currentSnapshot?.summary['total-records']) {
+	if (currentSnapshot?.summary["total-records"]) {
 		return {
-			totalRecords: Number(currentSnapshot.summary['total-records']),
-			totalDataFiles: Number(currentSnapshot.summary['total-data-files'] ?? 0)
+			totalRecords: Number(currentSnapshot.summary["total-records"]),
+			totalDataFiles: Number(currentSnapshot.summary["total-data-files"] ?? 0),
 		};
 	}
 
 	// Need credentials for R2 access
 	const creds = result.config ? extractS3Creds(result.config) : null;
-	if (!creds || !currentSnapshot?.['manifest-list']) return null;
+	if (!creds || !currentSnapshot?.["manifest-list"]) return null;
 
 	try {
-		return await fetchManifestStats(currentSnapshot['manifest-list'], creds);
+		return await fetchManifestStats(currentSnapshot["manifest-list"], creds);
 	} catch {
 		return null;
 	}

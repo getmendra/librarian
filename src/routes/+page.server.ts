@@ -1,28 +1,28 @@
-import type { PageServerLoad } from './$types';
-import { NAMESPACE_SUFFIX_ORDER } from '$env/static/private';
-import { listNamespaces } from '$lib/server/iceberg';
+import type { PageServerLoad } from "./$types";
+import { NAMESPACE_SUFFIX_ORDER } from "$env/static/private";
+import { listNamespaces } from "$lib/server/iceberg";
 
-const namespaceCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+const namespaceCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
 
 function parseNamespaceSuffixOrder(value: string): Map<string, number> {
 	if (!value) return new Map();
 
 	return new Map(
 		value
-			.split(',')
+			.split(",")
 			.map((part) => part.trim().toLowerCase())
 			.filter(Boolean)
-			.map((part, index) => [part, index] as const)
+			.map((part, index) => [part, index] as const),
 	);
 }
 
 function getOrderedSuffixPart(
 	segment: string,
-	namespaceSuffixOrder: Map<string, number>
+	namespaceSuffixOrder: Map<string, number>,
 ): { base: string; order: number } | null {
 	if (namespaceSuffixOrder.size === 0) return null;
 
-	const separatorIndex = segment.lastIndexOf('_');
+	const separatorIndex = segment.lastIndexOf("_");
 	if (separatorIndex <= 0) return null;
 
 	const suffix = segment.slice(separatorIndex + 1).toLowerCase();
@@ -31,11 +31,15 @@ function getOrderedSuffixPart(
 
 	return {
 		base: segment.slice(0, separatorIndex),
-		order
+		order,
 	};
 }
 
-function compareNamespaceSegment(a: string, b: string, namespaceSuffixOrder: Map<string, number>): number {
+function compareNamespaceSegment(
+	a: string,
+	b: string,
+	namespaceSuffixOrder: Map<string, number>,
+): number {
 	const orderedA = getOrderedSuffixPart(a, namespaceSuffixOrder);
 	const orderedB = getOrderedSuffixPart(b, namespaceSuffixOrder);
 
@@ -51,7 +55,7 @@ function compareNamespaceSegment(a: string, b: string, namespaceSuffixOrder: Map
 function compareNamespaces(
 	a: string[],
 	b: string[],
-	namespaceSuffixOrder: Map<string, number>
+	namespaceSuffixOrder: Map<string, number>,
 ): number {
 	const length = Math.min(a.length, b.length);
 
@@ -70,6 +74,6 @@ export const load: PageServerLoad = async () => {
 	const { namespaces } = await listNamespaces();
 	const namespaceSuffixOrder = parseNamespaceSuffixOrder(NAMESPACE_SUFFIX_ORDER);
 	return {
-		namespaces: [...namespaces].sort((a, b) => compareNamespaces(a, b, namespaceSuffixOrder))
+		namespaces: [...namespaces].sort((a, b) => compareNamespaces(a, b, namespaceSuffixOrder)),
 	};
 };

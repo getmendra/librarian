@@ -15,10 +15,10 @@ interface AvroField {
 
 type AvroType =
 	| string
-	| { type: 'array'; items: AvroType }
-	| { type: 'map'; values: AvroType }
-	| { type: 'record'; fields: AvroField[] }
-	| { type: 'fixed'; size: number }
+	| { type: "array"; items: AvroType }
+	| { type: "map"; values: AvroType }
+	| { type: "record"; fields: AvroField[] }
+	| { type: "fixed"; size: number }
 	| AvroType[]; // union
 
 class AvroReader {
@@ -89,36 +89,38 @@ class AvroReader {
 	}
 
 	skip(type: AvroType): void {
-		if (typeof type === 'string') {
+		if (typeof type === "string") {
 			switch (type) {
-				case 'null':
+				case "null":
 					break;
-				case 'boolean':
+				case "boolean":
 					this.pos++;
 					break;
-				case 'int':
-				case 'long':
+				case "int":
+				case "long":
 					this.readLong();
 					break;
-				case 'float':
+				case "float":
 					this.pos += 4;
 					break;
-				case 'double':
+				case "double":
 					this.pos += 8;
 					break;
-				case 'string':
-				case 'bytes':
+				case "string":
+				case "bytes":
 					this.pos += this.readLong();
 					break;
 			}
 		} else if (Array.isArray(type)) {
 			const idx = this.readLong();
-			if (idx >= 0 && idx < type.length && type[idx] !== 'null') {
+			if (idx >= 0 && idx < type.length && type[idx] !== "null") {
 				this.skip(type[idx]);
 			} else if (idx < 0 || idx >= type.length) {
-				throw new Error(`Union index ${idx} out of range for type ${JSON.stringify(type)} at pos ${this.pos}`);
+				throw new Error(
+					`Union index ${idx} out of range for type ${JSON.stringify(type)} at pos ${this.pos}`,
+				);
 			}
-		} else if (type.type === 'array') {
+		} else if (type.type === "array") {
 			let count = this.readLong();
 			while (count !== 0) {
 				if (count < 0) {
@@ -130,7 +132,7 @@ class AvroReader {
 				}
 				count = this.readLong();
 			}
-		} else if (type.type === 'map') {
+		} else if (type.type === "map") {
 			let count = this.readLong();
 			while (count !== 0) {
 				if (count < 0) {
@@ -143,40 +145,40 @@ class AvroReader {
 				}
 				count = this.readLong();
 			}
-		} else if (type.type === 'record') {
+		} else if (type.type === "record") {
 			for (const field of type.fields) {
 				this.skip(field.type);
 			}
-		} else if (type.type === 'fixed') {
+		} else if (type.type === "fixed") {
 			this.pos += type.size;
 		}
 	}
 
 	readValue(type: AvroType): unknown {
-		if (typeof type === 'string') {
+		if (typeof type === "string") {
 			switch (type) {
-				case 'null':
+				case "null":
 					return null;
-				case 'boolean':
+				case "boolean":
 					return this.readBoolean();
-				case 'int':
+				case "int":
 					return this.readInt();
-				case 'long':
+				case "long":
 					return this.readLong();
-				case 'float':
+				case "float":
 					return this.readFloat();
-				case 'double':
+				case "double":
 					return this.readDouble();
-				case 'string':
+				case "string":
 					return this.readString();
-				case 'bytes':
+				case "bytes":
 					return this.readBytesValue();
 			}
 		} else if (Array.isArray(type)) {
 			// Union
 			const idx = this.readLong();
 			return this.readValue(type[idx]);
-		} else if (type.type === 'array') {
+		} else if (type.type === "array") {
 			const result: unknown[] = [];
 			let count = this.readLong();
 			while (count !== 0) {
@@ -190,7 +192,7 @@ class AvroReader {
 				count = this.readLong();
 			}
 			return result;
-		} else if (type.type === 'map') {
+		} else if (type.type === "map") {
 			const result: Record<string, unknown> = {};
 			let count = this.readLong();
 			while (count !== 0) {
@@ -205,13 +207,13 @@ class AvroReader {
 				count = this.readLong();
 			}
 			return result;
-		} else if (type.type === 'record') {
+		} else if (type.type === "record") {
 			const result: AvroRecord = {};
 			for (const field of type.fields) {
 				result[field.name] = this.readValue(field.type);
 			}
 			return result;
-		} else if (type.type === 'fixed') {
+		} else if (type.type === "fixed") {
 			return this.readFixed(type.size);
 		}
 		return null;
@@ -224,35 +226,42 @@ class AvroReader {
 
 /** Normalize a JSON schema type into our AvroType representation */
 function normalizeType(schema: unknown): AvroType {
-	if (typeof schema === 'string') return schema;
+	if (typeof schema === "string") return schema;
 	if (Array.isArray(schema)) return schema.map(normalizeType);
 	const s = schema as Record<string, unknown>;
 	const primitives = new Set([
-		'null', 'boolean', 'int', 'long', 'float', 'double', 'string', 'bytes'
+		"null",
+		"boolean",
+		"int",
+		"long",
+		"float",
+		"double",
+		"string",
+		"bytes",
 	]);
 	if (primitives.has(s.type as string) && Object.keys(s).length <= 2) {
 		// {"type": "string"} or {"type": "long", "logicalType": "..."} → bare primitive
 		return s.type as string;
 	}
 	switch (s.type) {
-		case 'array':
-			return { type: 'array', items: normalizeType(s.items) };
-		case 'map':
-			return { type: 'map', values: normalizeType(s.values) };
-		case 'fixed':
-			return { type: 'fixed', size: s.size as number };
-		case 'record':
+		case "array":
+			return { type: "array", items: normalizeType(s.items) };
+		case "map":
+			return { type: "map", values: normalizeType(s.values) };
+		case "fixed":
+			return { type: "fixed", size: s.size as number };
+		case "record":
 			return {
-				type: 'record',
+				type: "record",
 				fields: (s.fields as Array<{ name: string; type: unknown }>).map((f) => ({
 					name: f.name,
-					type: normalizeType(f.type)
-				}))
+					type: normalizeType(f.type),
+				})),
 			};
-		case 'enum':
-			return 'int';
+		case "enum":
+			return "int";
 		default:
-			return 'null';
+			return "null";
 	}
 }
 
@@ -260,16 +269,13 @@ function normalizeType(schema: unknown): AvroType {
  * Parse an Avro container file, reading only the specified fields.
  * Fields not in `wantFields` are skipped efficiently.
  */
-export async function parseAvro(
-	data: Uint8Array,
-	wantFields?: Set<string>
-): Promise<AvroRecord[]> {
+export async function parseAvro(data: Uint8Array, wantFields?: Set<string>): Promise<AvroRecord[]> {
 	const reader = new AvroReader(data);
 
 	// Magic: "Obj\x01"
 	const magic = reader.readBytes(4);
 	if (magic[0] !== 0x4f || magic[1] !== 0x62 || magic[2] !== 0x6a || magic[3] !== 1) {
-		throw new Error('Not an Avro container file');
+		throw new Error("Not an Avro container file");
 	}
 
 	// File metadata (map of string -> bytes)
@@ -288,15 +294,15 @@ export async function parseAvro(
 	}
 
 	reader.readBytes(16); // sync marker
-	const codec = meta['avro.codec'] ? new TextDecoder().decode(meta['avro.codec']) : 'null';
-	const schemaJson = JSON.parse(new TextDecoder().decode(meta['avro.schema']));
+	const codec = meta["avro.codec"] ? new TextDecoder().decode(meta["avro.codec"]) : "null";
+	const schemaJson = JSON.parse(new TextDecoder().decode(meta["avro.schema"]));
 	// Build field list from schema
-	const fields: AvroField[] = (
-		schemaJson.fields as Array<{ name: string; type: unknown }>
-	).map((f) => ({
-		name: f.name,
-		type: normalizeType(f.type)
-	}));
+	const fields: AvroField[] = (schemaJson.fields as Array<{ name: string; type: unknown }>).map(
+		(f) => ({
+			name: f.name,
+			type: normalizeType(f.type),
+		}),
+	);
 
 	const records: AvroRecord[] = [];
 
@@ -307,8 +313,8 @@ export async function parseAvro(
 		let blockData = reader.readBytes(blockSize);
 
 		// Decompress if needed
-		if (codec === 'deflate') {
-			const ds = new DecompressionStream('deflate-raw');
+		if (codec === "deflate") {
+			const ds = new DecompressionStream("deflate-raw");
 			const writer = ds.writable.getWriter();
 			writer.write(blockData as ArrayBufferView<ArrayBuffer>);
 			writer.close();

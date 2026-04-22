@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import ChevronRight from "@lucide/svelte/icons/chevron-right";
 
 	let { data } = $props();
 </script>
@@ -10,7 +10,7 @@
 	{#if data.namespaces.length > 0}
 		<div class="divide-y divide-border rounded-lg border">
 			{#each data.namespaces as ns}
-				{@const name = ns.join('.')}
+				{@const name = ns.join(".")}
 				<a
 					href="/ns/{encodeURIComponent(name)}"
 					class="flex items-center justify-between px-4 py-3 transition-colors hover:bg-muted/50"

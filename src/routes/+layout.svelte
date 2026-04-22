@@ -1,21 +1,21 @@
 <script lang="ts">
-	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
-	import { page } from '$app/state';
-	import * as Breadcrumb from '$lib/components/ui/breadcrumb';
-	import { Separator } from '$lib/components/ui/separator';
+	import "./layout.css";
+	import favicon from "$lib/assets/favicon.svg";
+	import { page } from "$app/state";
+	import * as Breadcrumb from "$lib/components/ui/breadcrumb";
+	import { Separator } from "$lib/components/ui/separator";
 
 	let { children } = $props();
 
 	type Crumb = { label: string; href: string };
 
 	let crumbs: Crumb[] = $derived.by(() => {
-		const segments = page.url.pathname.split('/').filter(Boolean);
-		const result: Crumb[] = [{ label: 'Namespaces', href: '/' }];
-		if (segments[0] === 'ns' && segments[1]) {
+		const segments = page.url.pathname.split("/").filter(Boolean);
+		const result: Crumb[] = [{ label: "Namespaces", href: "/" }];
+		if (segments[0] === "ns" && segments[1]) {
 			const ns = decodeURIComponent(segments[1]);
 			result.push({ label: ns, href: `/ns/${segments[1]}` });
-			if (segments[2] === 'table' && segments[3]) {
+			if (segments[2] === "table" && segments[3]) {
 				const table = decodeURIComponent(segments[3]);
 				result.push({ label: table, href: `/ns/${segments[1]}/table/${segments[3]}` });
 			}

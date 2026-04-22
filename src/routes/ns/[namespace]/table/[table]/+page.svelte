@@ -1,55 +1,58 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { useSearchParams } from 'runed/kit';
-	import * as Tabs from '$lib/components/ui/tabs';
-	import * as Table from '$lib/components/ui/table';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Skeleton } from '$lib/components/ui/skeleton';
-	import type { StructField, IcebergType, TableMetadata } from '$lib/server/types';
-	import { tabSchema } from './search-params';
+	import { browser } from "$app/environment";
+	import { useSearchParams } from "runed/kit";
+	import * as Tabs from "$lib/components/ui/tabs";
+	import * as Table from "$lib/components/ui/table";
+	import { Badge } from "$lib/components/ui/badge";
+	import { Skeleton } from "$lib/components/ui/skeleton";
+	import type { StructField, IcebergType, TableMetadata } from "$lib/server/types";
+	import { tabSchema } from "./search-params";
 
 	let { data } = $props();
 	let meta: TableMetadata = $derived(data.metadata);
 	const tabSearchParams = useSearchParams(tabSchema, {
 		pushHistory: false,
-		noScroll: true
+		noScroll: true,
 	});
 	let selectedTab = $derived(browser ? tabSearchParams.tab : data.tab);
 
 	let currentSchema = $derived(
-		meta.schemas.find((s) => s['schema-id'] === meta['current-schema-id']) ?? meta.schemas[0]
+		meta.schemas.find((s) => s["schema-id"] === meta["current-schema-id"]) ?? meta.schemas[0],
 	);
 
 	let currentPartitionSpec = $derived(
-		meta['partition-specs']?.find((s) => s['spec-id'] === meta['default-spec-id']) ??
-			meta['partition-specs']?.[0]
+		meta["partition-specs"]?.find((s) => s["spec-id"] === meta["default-spec-id"]) ??
+			meta["partition-specs"]?.[0],
 	);
 
 	let snapshots = $derived(
-		[...(meta.snapshots ?? [])].sort((a, b) => b['timestamp-ms'] - a['timestamp-ms'])
+		[...(meta.snapshots ?? [])].sort((a, b) => b["timestamp-ms"] - a["timestamp-ms"]),
 	);
 
 	let latestSnapshot = $derived(snapshots[0]);
 
 	function formatTimestamp(ms: number): string {
-		return new Date(ms).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC');
+		return new Date(ms)
+			.toISOString()
+			.replace("T", " ")
+			.replace(/\.\d{3}Z$/, " UTC");
 	}
 
 	function formatType(t: IcebergType): string {
-		if (typeof t === 'string') return t;
-		if (t.type === 'struct') return 'struct';
-		if (t.type === 'list') return `list<${formatType(t.element)}>`;
-		if (t.type === 'map') return `map<${formatType(t.key)}, ${formatType(t.value)}>`;
-		return 'unknown';
+		if (typeof t === "string") return t;
+		if (t.type === "struct") return "struct";
+		if (t.type === "list") return `list<${formatType(t.element)}>`;
+		if (t.type === "map") return `map<${formatType(t.key)}, ${formatType(t.value)}>`;
+		return "unknown";
 	}
 
 	function flattenFields(
 		fields: StructField[],
-		prefix = ''
+		prefix = "",
 	): { id: number; name: string; type: string; required: boolean; depth: number }[] {
 		const result: { id: number; name: string; type: string; required: boolean; depth: number }[] =
 			[];
-		const depth = prefix ? prefix.split('.').length : 0;
+		const depth = prefix ? prefix.split(".").length : 0;
 		for (const f of fields) {
 			const fullName = prefix ? `${prefix}.${f.name}` : f.name;
 			result.push({
@@ -57,9 +60,9 @@
 				name: fullName,
 				type: formatType(f.type),
 				required: f.required,
-				depth
+				depth,
 			});
-			if (typeof f.type !== 'string' && f.type.type === 'struct') {
+			if (typeof f.type !== "string" && f.type.type === "struct") {
 				result.push(...flattenFields(f.type.fields, fullName));
 			}
 		}
@@ -73,7 +76,7 @@
 	}
 
 	let properties = $derived(
-		meta.properties ? Object.entries(meta.properties).sort(([a], [b]) => a.localeCompare(b)) : []
+		meta.properties ? Object.entries(meta.properties).sort(([a], [b]) => a.localeCompare(b)) : [],
 	);
 </script>
 
@@ -87,7 +90,7 @@
 		<div class="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
 			<span>
 				<span class="text-muted-foreground">Format</span>
-				<Badge variant="secondary" class="ml-1.5">v{meta['format-version']}</Badge>
+				<Badge variant="secondary" class="ml-1.5">v{meta["format-version"]}</Badge>
 			</span>
 			{#await data.stats}
 				<span>
@@ -116,13 +119,19 @@
 					<span class="ml-1.5 font-medium">{snapshots.length}</span>
 				</span>
 			{/if}
-			{#if meta['last-updated-ms']}
+			{#if meta["last-updated-ms"]}
 				<span>
 					<span class="text-muted-foreground">Updated</span>
-					<span class="ml-1.5 font-medium">{new Date(meta['last-updated-ms']).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+					<span class="ml-1.5 font-medium"
+						>{new Date(meta["last-updated-ms"]).toLocaleDateString(undefined, {
+							year: "numeric",
+							month: "short",
+							day: "numeric",
+						})}</span
+					>
 				</span>
 			{/if}
-			<span class="text-muted-foreground font-mono text-xs">{meta['table-uuid']}</span>
+			<span class="font-mono text-xs text-muted-foreground">{meta["table-uuid"]}</span>
 		</div>
 	</div>
 
@@ -151,9 +160,7 @@
 					<Table.Body>
 						{#each flatFields as field}
 							<Table.Row>
-								<Table.Cell class="font-mono text-xs text-muted-foreground"
-									>{field.id}</Table.Cell
-								>
+								<Table.Cell class="font-mono text-xs text-muted-foreground">{field.id}</Table.Cell>
 								<Table.Cell>
 									<span style="padding-left: {field.depth * 1.5}rem" class="font-medium"
 										>{field.name}</span
@@ -190,7 +197,7 @@
 						{#each currentPartitionSpec.fields as field}
 							<Table.Row>
 								<Table.Cell class="font-medium">{field.name}</Table.Cell>
-								<Table.Cell>{fieldNameById(field['source-id'])}</Table.Cell>
+								<Table.Cell>{fieldNameById(field["source-id"])}</Table.Cell>
 								<Table.Cell>
 									<Badge variant="secondary">{field.transform}</Badge>
 								</Table.Cell>
@@ -220,26 +227,24 @@
 					<Table.Body>
 						{#each snapshots as snap}
 							<Table.Row>
-								<Table.Cell class="font-mono text-xs">{snap['snapshot-id']}</Table.Cell>
-								<Table.Cell class="text-sm"
-									>{formatTimestamp(snap['timestamp-ms'])}</Table.Cell
-								>
+								<Table.Cell class="font-mono text-xs">{snap["snapshot-id"]}</Table.Cell>
+								<Table.Cell class="text-sm">{formatTimestamp(snap["timestamp-ms"])}</Table.Cell>
 								<Table.Cell>
 									{#if snap.summary.operation}
 										<Badge variant="outline">{snap.summary.operation}</Badge>
 									{/if}
 								</Table.Cell>
 								<Table.Cell class="text-right font-mono text-xs">
-									{snap.summary['added-records'] ?? '-'}
+									{snap.summary["added-records"] ?? "-"}
 								</Table.Cell>
 								<Table.Cell class="text-right font-mono text-xs">
-									{snap.summary['deleted-records'] ?? '-'}
+									{snap.summary["deleted-records"] ?? "-"}
 								</Table.Cell>
 								<Table.Cell class="text-right font-mono text-xs">
-									{snap.summary['total-records'] ?? '-'}
+									{snap.summary["total-records"] ?? "-"}
 								</Table.Cell>
 								<Table.Cell class="text-right font-mono text-xs">
-									{snap.summary['total-data-files'] ?? '-'}
+									{snap.summary["total-data-files"] ?? "-"}
 								</Table.Cell>
 							</Table.Row>
 						{/each}

@@ -1,14 +1,14 @@
 <script lang="ts">
-	import * as Table from '$lib/components/ui/table';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Skeleton } from '$lib/components/ui/skeleton';
+	import * as Table from "$lib/components/ui/table";
+	import { Badge } from "$lib/components/ui/badge";
+	import { Skeleton } from "$lib/components/ui/skeleton";
 
 	let { data } = $props();
 
 	function timeAgo(ms: number | null): string {
-		if (!ms) return '-';
+		if (!ms) return "-";
 		const seconds = Math.floor((Date.now() - ms) / 1000);
-		if (seconds < 60) return 'just now';
+		if (seconds < 60) return "just now";
 		const minutes = Math.floor(seconds / 60);
 		if (minutes < 60) return `${minutes}m ago`;
 		const hours = Math.floor(minutes / 60);
@@ -24,7 +24,7 @@
 	<div>
 		<h1 class="text-lg font-medium">{data.namespace}</h1>
 		<p class="text-sm text-muted-foreground">
-			{data.tables.length} table{data.tables.length !== 1 ? 's' : ''}
+			{data.tables.length} table{data.tables.length !== 1 ? "s" : ""}
 		</p>
 	</div>
 
@@ -72,7 +72,9 @@
 						>
 							<Table.Cell>
 								<a
-									href="/ns/{encodeURIComponent(data.namespace)}/table/{encodeURIComponent(table.name)}"
+									href="/ns/{encodeURIComponent(data.namespace)}/table/{encodeURIComponent(
+										table.name,
+									)}"
 									class="font-medium hover:underline"
 								>
 									{table.name}
@@ -87,12 +89,10 @@
 								{table.columns}
 							</Table.Cell>
 							<Table.Cell class="text-right font-mono text-sm text-muted-foreground">
-								{table.totalRecords != null ? Number(table.totalRecords).toLocaleString() : '-'}
+								{table.totalRecords != null ? Number(table.totalRecords).toLocaleString() : "-"}
 							</Table.Cell>
 							<Table.Cell class="text-right font-mono text-sm text-muted-foreground">
-								{table.totalDataFiles != null
-									? Number(table.totalDataFiles).toLocaleString()
-									: '-'}
+								{table.totalDataFiles != null ? Number(table.totalDataFiles).toLocaleString() : "-"}
 							</Table.Cell>
 							<Table.Cell class="text-right text-sm text-muted-foreground">
 								{timeAgo(table.lastUpdated)}
