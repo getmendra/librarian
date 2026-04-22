@@ -49,6 +49,9 @@
 				columns={getColumns(data.namespace)}
 				filterColumn="name"
 				filterPlaceholder="Filter tables..."
+				initialFilter={data.filter}
+				initialSort={data.sort}
+				initialDir={data.dir}
 			/>
 		{/await}
 	{:else}

@@ -1,9 +1,14 @@
 import type { PageServerLoad } from "./$types";
 import { listTables, loadTable, loadTableStats } from "$lib/server/iceberg";
+import { validateSearchParams } from "runed/kit";
+import { namespaceTableSearchParamsSchema } from "./search-params";
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, url, untrack }) => {
 	const ns = params.namespace;
 	const { identifiers } = await listTables(ns);
+	const { data: searchParams } = untrack(() =>
+		validateSearchParams(url, namespaceTableSearchParamsSchema),
+	);
 
 	const tableStats = Promise.all(
 		identifiers.map(async (id) => {
@@ -37,6 +42,9 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	return {
 		namespace: ns,
+		filter: searchParams.q,
+		sort: searchParams.sort,
+		dir: searchParams.dir,
 		tables: identifiers.map((id) => id.name),
 		tableStats,
 	};

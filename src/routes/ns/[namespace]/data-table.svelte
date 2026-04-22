@@ -1,4 +1,5 @@
 <script lang="ts" generics="TData, TValue">
+	import { browser } from "$app/environment";
 	import {
 		type ColumnDef,
 		type ColumnFiltersState,
@@ -11,6 +12,7 @@
 		getSortedRowModel,
 	} from "@tanstack/table-core";
 	import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
+	import { useSearchParams } from "runed/kit";
 	import { Button } from "$lib/components/ui/button";
 	import {
 		createSvelteTable,
@@ -19,6 +21,10 @@
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { Input } from "$lib/components/ui/input";
 	import * as Table from "$lib/components/ui/table";
+	import {
+		namespaceTableSearchParamsSchema,
+		type SortKey,
+	} from "./search-params";
 
 	type ColumnMeta = {
 		headClass?: string;
@@ -30,6 +36,9 @@
 		data: TData[];
 		filterColumn: string;
 		filterPlaceholder: string;
+		initialFilter: string;
+		initialSort: "" | SortKey;
+		initialDir: "asc" | "desc";
 	};
 
 	let {
@@ -37,12 +46,24 @@
 		columns,
 		filterColumn,
 		filterPlaceholder,
+		initialFilter,
+		initialSort,
+		initialDir,
 	}: DataTableProps<TData, TValue> = $props();
 
 	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 100 });
-	let sorting = $state<SortingState>([]);
-	let columnFilters = $state<ColumnFiltersState>([]);
 	let columnVisibility = $state<VisibilityState>({});
+	const searchParams = useSearchParams(namespaceTableSearchParamsSchema, {
+		pushHistory: false,
+		noScroll: true,
+		debounce: 200,
+	});
+
+	let currentFilter = $derived(browser ? searchParams.q : initialFilter);
+	let currentSort = $derived(browser ? searchParams.sort : initialSort);
+	let currentDir = $derived(browser ? searchParams.dir : initialDir);
+	let sorting = $derived(getSortingState(currentSort, currentDir));
+	let columnFilters = $derived(getFilterState(filterColumn, currentFilter));
 
 	const table = createSvelteTable({
 		get data() {
@@ -63,17 +84,18 @@
 			}
 		},
 		onSortingChange: (updater) => {
-			if (typeof updater === "function") {
-				sorting = updater(sorting);
-			} else {
-				sorting = updater;
+			const nextSorting = typeof updater === "function" ? updater(sorting) : updater;
+			if (!sameSortingState(sorting, nextSorting)) {
+				pagination = { ...pagination, pageIndex: 0 };
+				updateSortParams(nextSorting);
 			}
 		},
 		onColumnFiltersChange: (updater) => {
-			if (typeof updater === "function") {
-				columnFilters = updater(columnFilters);
-			} else {
-				columnFilters = updater;
+			const nextFilters = typeof updater === "function" ? updater(columnFilters) : updater;
+			if (!sameFilterState(columnFilters, nextFilters)) {
+				pagination = { ...pagination, pageIndex: 0 };
+				const value = nextFilters.find((filter) => filter.id === filterColumn)?.value;
+				updateFilterParams(typeof value === "string" ? value : "");
 			}
 		},
 		onColumnVisibilityChange: (updater) => {
@@ -106,16 +128,53 @@
 			.replace(/\s+/g, " ")
 			.trim();
 	}
+
+	function updateFilterParams(value: string) {
+		if (!browser || searchParams.q === value) return;
+		searchParams.q = value;
+	}
+
+	function updateSortParams(nextSorting: SortingState) {
+		if (!browser) return;
+		const activeSort = nextSorting[0];
+		searchParams.update({
+			sort: isSortKey(activeSort?.id) ? activeSort.id : "",
+			dir: activeSort?.desc ? "desc" : "asc",
+		});
+	}
+
+	function getFilterState(columnId: string, value: string): ColumnFiltersState {
+		return value ? [{ id: columnId, value }] : [];
+	}
+
+	function getSortingState(sort: "" | SortKey, dir: "asc" | "desc"): SortingState {
+		return sort ? [{ id: sort, desc: dir === "desc" }] : [];
+	}
+
+	function sameFilterState(a: ColumnFiltersState, b: ColumnFiltersState): boolean {
+		if (a.length !== b.length) return false;
+		return a.every((filter, index) => filter.id === b[index]?.id && filter.value === b[index]?.value);
+	}
+
+	function sameSortingState(a: SortingState, b: SortingState): boolean {
+		if (a.length !== b.length) return false;
+		return a.every((sort, index) => sort.id === b[index]?.id && sort.desc === b[index]?.desc);
+	}
+
+	function isSortKey(value: string | undefined): value is SortKey {
+		return value === "name"
+			|| value === "columns"
+			|| value === "totalRecords"
+			|| value === "totalDataFiles"
+			|| value === "lastUpdated";
+	}
 </script>
 
 <div class="space-y-4">
 	<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
 		<Input
 			placeholder={filterPlaceholder}
-			value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
-			onchange={(e) => {
-				table.getColumn(filterColumn)?.setFilterValue(e.currentTarget.value);
-			}}
+			value={currentFilter}
 			oninput={(e) => {
 				table.getColumn(filterColumn)?.setFilterValue(e.currentTarget.value);
 			}}
