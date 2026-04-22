@@ -18,6 +18,11 @@ Copy `.env.example` to `.env` and fill in your values. Set the catalog token sec
 wrangler secret put CATALOG_TOKEN
 ```
 
+Optional namespace ordering:
+
+- Set `NAMESPACE_SUFFIX_ORDER=bronze,silver,gold` to prioritize known suffixes on the final namespace segment, e.g. `tenant_bronze`, `tenant_silver`, `tenant_gold`.
+- Leave it unset to keep the default generic lexicographic namespace ordering.
+
 ## Development
 
 ```sh
