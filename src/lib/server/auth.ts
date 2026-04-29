@@ -1,7 +1,7 @@
-import { CF_ACCESS_TEAM, POLICY_AUD } from "$env/static/private";
+import { ENV } from "varlock/env";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
-const teamDomain = `https://${CF_ACCESS_TEAM}.cloudflareaccess.com`;
+const teamDomain = `https://${ENV.CF_ACCESS_TEAM}.cloudflareaccess.com`;
 const jwks = createRemoteJWKSet(new URL(`${teamDomain}/cdn-cgi/access/certs`));
 
 export async function validateAccess(request: Request): Promise<void> {
@@ -14,7 +14,7 @@ export async function validateAccess(request: Request): Promise<void> {
 	}
 
 	await jwtVerify(token, jwks, {
-		audience: POLICY_AUD,
+		audience: ENV.POLICY_AUD,
 		issuer: teamDomain,
 	});
 }

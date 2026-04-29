@@ -7,7 +7,7 @@ Read-only Iceberg catalog explorer for Cloudflare R2 Data Catalog.
 - SvelteKit + Cloudflare Workers, shadcn-svelte UI
 - Iceberg REST Catalog API only (not CF Management API)
 - CF Access JWT validation via `jose` (bypassed in dev via `$app/environment.dev`)
-- Static env vars (`$env/static/private`), `CATALOG_TOKEN` as Worker secret (`$env/dynamic/private`)
+- Runtime config is managed by Varlock + 1Password (`varlock/env`), deployed with `varlock-wrangler`
 - Must call `GET /v1/config?warehouse=` first to get the actual prefix for API calls
 
 ## Design decisions

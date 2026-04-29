@@ -12,11 +12,34 @@ Read-only Iceberg catalog explorer for Cloudflare R2 Data Catalog. Deploys as a 
 
 ## Setup
 
-Copy `.env.example` to `.env` and fill in your values. Set the catalog token secret:
+Install dependencies and inspect the Varlock schema:
 
 ```sh
-wrangler secret put CATALOG_TOKEN
+pnpm install
+pnpm exec varlock load
 ```
+
+Configuration is defined in `.env.schema` and loaded from a 1Password Environment via Varlock.
+Create a 1Password Environment for this deployment with these variables:
+
+- `CATALOG_URI`
+- `CATALOG_WAREHOUSE`
+- `NAMESPACE_SUFFIX_ORDER`
+- `CF_ACCESS_TEAM`
+- `POLICY_AUD`
+- `CATALOG_TOKEN`
+
+For local development, Varlock uses the 1Password desktop app/CLI integration:
+
+```sh
+pnpm exec varlock load
+pnpm dev
+```
+
+For Cloudflare Workers Builds, set these build-time variables in the dashboard:
+
+- `APP_ENV=production`
+- `OP_SERVICE_ACCOUNT_TOKEN=<1Password service account token>`
 
 Optional namespace ordering:
 
@@ -32,8 +55,8 @@ pnpm dev
 
 CF Access auth is bypassed in dev mode.
 
-## Deploy
+If you want to run the built Worker locally, use:
 
 ```sh
-pnpm deploy
+pnpm preview
 ```

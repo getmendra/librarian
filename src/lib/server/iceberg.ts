@@ -1,5 +1,4 @@
-import { CATALOG_URI, CATALOG_WAREHOUSE } from "$env/static/private";
-import { env } from "$env/dynamic/private";
+import { ENV } from "varlock/env";
 import { s3Get, type S3Credentials } from "./s3";
 import { parseAvro } from "./avro";
 import type {
@@ -11,7 +10,7 @@ import type {
 
 function authHeaders(): HeadersInit {
 	return {
-		Authorization: `Bearer ${env.CATALOG_TOKEN}`,
+		Authorization: `Bearer ${ENV.CATALOG_TOKEN}`,
 		Accept: "application/json",
 	};
 }
@@ -27,14 +26,14 @@ function fetchPrefix(): Promise<string> {
 	if (!prefixPromise) {
 		prefixPromise = (async () => {
 			const res = await fetch(
-				`${CATALOG_URI}/v1/config?warehouse=${encodeURIComponent(CATALOG_WAREHOUSE)}`,
+				`${ENV.CATALOG_URI}/v1/config?warehouse=${encodeURIComponent(ENV.CATALOG_WAREHOUSE)}`,
 				{ headers: authHeaders() },
 			);
 			if (!res.ok) {
 				throw new Error(`Failed to fetch catalog config: ${res.status} ${res.statusText}`);
 			}
 			const config: CatalogConfig = await res.json();
-			return config.overrides.prefix ?? CATALOG_WAREHOUSE;
+			return config.overrides.prefix ?? ENV.CATALOG_WAREHOUSE;
 		})();
 	}
 	return prefixPromise;
@@ -42,7 +41,7 @@ function fetchPrefix(): Promise<string> {
 
 async function get<T>(path: string): Promise<T> {
 	const prefix = await fetchPrefix();
-	const fullUrl = `${CATALOG_URI}/v1/${prefix}${path}`;
+	const fullUrl = `${ENV.CATALOG_URI}/v1/${prefix}${path}`;
 	const res = await fetch(fullUrl, { headers: authHeaders() });
 	if (!res.ok) {
 		const body = await res.text();

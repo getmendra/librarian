@@ -1,5 +1,5 @@
 import type { PageServerLoad } from "./$types";
-import { NAMESPACE_SUFFIX_ORDER } from "$env/static/private";
+import { ENV } from "varlock/env";
 import { listNamespaces } from "$lib/server/iceberg";
 
 const namespaceCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
@@ -72,7 +72,7 @@ function compareNamespaces(
 
 export const load: PageServerLoad = async () => {
 	const { namespaces } = await listNamespaces();
-	const namespaceSuffixOrder = parseNamespaceSuffixOrder(NAMESPACE_SUFFIX_ORDER);
+	const namespaceSuffixOrder = parseNamespaceSuffixOrder(ENV.NAMESPACE_SUFFIX_ORDER);
 	return {
 		namespaces: [...namespaces].sort((a, b) => compareNamespaces(a, b, namespaceSuffixOrder)),
 	};
