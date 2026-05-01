@@ -33,10 +33,17 @@
 	let latestSnapshot = $derived(snapshots[0]);
 
 	function formatTimestamp(ms: number): string {
-		return new Date(ms)
-			.toISOString()
-			.replace("T", " ")
-			.replace(/\.\d{3}Z$/, " UTC");
+		return new Intl.DateTimeFormat(data.locale, {
+			year: "numeric",
+			month: "short",
+			day: "numeric",
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+			hourCycle: "h23",
+			timeZone: data.timeZone,
+			timeZoneName: "short",
+		}).format(new Date(ms));
 	}
 
 	function formatType(t: IcebergType): string {
