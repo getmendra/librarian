@@ -6,9 +6,10 @@
 	import { Badge } from "$lib/components/ui/badge";
 	import { Skeleton } from "$lib/components/ui/skeleton";
 	import type { StructField, IcebergType, TableMetadata } from "$lib/server/types";
+	import type { PageProps } from "./$types";
 	import { tabSchema } from "./search-params";
 
-	let { data } = $props();
+	let { data }: PageProps = $props();
 	let meta: TableMetadata = $derived(data.metadata);
 	const tabSearchParams = useSearchParams(tabSchema, {
 		pushHistory: false,

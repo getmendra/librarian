@@ -3,9 +3,9 @@ import { loadTable, loadTableStats } from "$lib/server/iceberg";
 import { validateSearchParams } from "runed/kit";
 import { tabSchema } from "./search-params";
 
-export const load: PageServerLoad = async ({ params, url }) => {
+export const load: PageServerLoad = async ({ params, url, request, untrack }) => {
 	const result = await loadTable(params.namespace, params.table);
-	const { data: searchParams } = validateSearchParams(url, tabSchema);
+	const { data: searchParams } = untrack(() => validateSearchParams(url, tabSchema));
 	const currentSnapshot = result.metadata.snapshots?.find(
 		(s) => s["snapshot-id"] === result.metadata["current-snapshot-id"],
 	);
