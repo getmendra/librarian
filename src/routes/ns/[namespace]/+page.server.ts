@@ -18,6 +18,12 @@ export const load: PageServerLoad = async ({ params, url, untrack }) => {
 				const currentSchema = metadata.schemas.find(
 					(s) => s["schema-id"] === metadata["current-schema-id"],
 				);
+				const currentSnapshot = metadata.snapshots?.find(
+					(s) => s["snapshot-id"] === metadata["current-snapshot-id"],
+				);
+				if (currentSnapshot?.summary["total-records"] == null) {
+					console.warn("[iceberg stats] missing total-records; using avro", `${ns}.${id.name}`);
+				}
 				const stats = await loadTableStats(result);
 				return {
 					name: id.name,
