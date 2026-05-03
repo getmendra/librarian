@@ -2,6 +2,7 @@
 	import "./layout.css";
 	import favicon from "$lib/assets/favicon.svg";
 	import { page } from "$app/state";
+	import { ModeWatcher } from "mode-watcher";
 	import * as Breadcrumb from "$lib/components/ui/breadcrumb";
 	import { Separator } from "$lib/components/ui/separator";
 
@@ -25,6 +26,8 @@
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
+
+<ModeWatcher />
 
 <div class="min-h-screen bg-background">
 	<header class="border-b border-border">
