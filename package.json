@@ -1,7 +1,7 @@
 {
 	"name": "librarian",
-	"private": true,
 	"version": "0.0.1",
+	"private": true,
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -10,8 +10,9 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --incremental --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --incremental --tsconfig ./tsconfig.json --watch",
-		"lint": "prettier --check . && eslint .",
-		"format": "prettier --write .",
+		"lint": "oxfmt --check . && eslint .",
+		"format": "oxfmt --write .",
+		"format:check": "oxfmt --check .",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run",
 		"gen": "varlock-wrangler types",
@@ -19,7 +20,15 @@
 		"deploy:preview": "varlock-wrangler versions upload",
 		"cf-typegen": "varlock-wrangler types ./src/worker-configuration.d.ts"
 	},
-	"packageManager": "pnpm@10.30.1",
+	"dependencies": {
+		"@varlock/1password-plugin": "^0.3.5",
+		"@varlock/cloudflare-integration": "^0.1.1",
+		"jose": "^6.1.3",
+		"mode-watcher": "^1.1.0",
+		"runed": "^0.37.1",
+		"varlock": "^0.9.1",
+		"zod": "^4.3.6"
+	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.2",
 		"@eslint/js": "^9.39.2",
@@ -38,10 +47,8 @@
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.14.0",
 		"globals": "^17.3.0",
+		"oxfmt": "^0.49.0",
 		"playwright": "^1.58.1",
-		"prettier": "^3.8.1",
-		"prettier-plugin-svelte": "^3.4.1",
-		"prettier-plugin-tailwindcss": "^0.7.2",
 		"svelte": "^5.49.2",
 		"svelte-check": "^4.3.6",
 		"tailwind-merge": "^3.5.0",
@@ -55,13 +62,5 @@
 		"vitest-browser-svelte": "^2.0.2",
 		"wrangler": "^4.86.0"
 	},
-	"dependencies": {
-		"@varlock/1password-plugin": "^0.3.5",
-		"@varlock/cloudflare-integration": "^0.1.1",
-		"jose": "^6.1.3",
-		"mode-watcher": "^1.1.0",
-		"runed": "^0.37.1",
-		"varlock": "^0.9.1",
-		"zod": "^4.3.6"
-	}
+	"packageManager": "pnpm@10.30.1"
 }

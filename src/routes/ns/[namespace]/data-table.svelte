@@ -14,18 +14,12 @@
 	import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
 	import { useSearchParams } from "runed/kit";
 	import { Button } from "$lib/components/ui/button";
-	import {
-		createSvelteTable,
-		FlexRender,
-	} from "$lib/components/ui/data-table";
+	import { createSvelteTable, FlexRender } from "$lib/components/ui/data-table";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { Input } from "$lib/components/ui/input";
 	import { Skeleton } from "$lib/components/ui/skeleton";
 	import * as Table from "$lib/components/ui/table";
-	import {
-		namespaceTableSearchParamsSchema,
-		type SortKey,
-	} from "./search-params";
+	import { namespaceTableSearchParamsSchema, type SortKey } from "./search-params";
 
 	type ColumnMeta = {
 		headClass?: string;
@@ -158,7 +152,9 @@
 
 	function sameFilterState(a: ColumnFiltersState, b: ColumnFiltersState): boolean {
 		if (a.length !== b.length) return false;
-		return a.every((filter, index) => filter.id === b[index]?.id && filter.value === b[index]?.value);
+		return a.every(
+			(filter, index) => filter.id === b[index]?.id && filter.value === b[index]?.value,
+		);
 	}
 
 	function sameSortingState(a: SortingState, b: SortingState): boolean {
@@ -167,11 +163,13 @@
 	}
 
 	function isSortKey(value: string | undefined): value is SortKey {
-		return value === "name"
-			|| value === "columns"
-			|| value === "totalRecords"
-			|| value === "totalDataFiles"
-			|| value === "lastUpdated";
+		return (
+			value === "name" ||
+			value === "columns" ||
+			value === "totalRecords" ||
+			value === "totalDataFiles" ||
+			value === "lastUpdated"
+		);
 	}
 </script>
 
@@ -221,7 +219,10 @@
 								class={(header.column.columnDef.meta as ColumnMeta | undefined)?.headClass}
 							>
 								{#if !header.isPlaceholder}
-									<FlexRender content={header.column.columnDef.header} context={header.getContext()} />
+									<FlexRender
+										content={header.column.columnDef.header}
+										context={header.getContext()}
+									/>
 								{/if}
 							</Table.Head>
 						{/each}
@@ -252,7 +253,9 @@
 					{#each table.getRowModel().rows as row (row.id)}
 						<Table.Row>
 							{#each row.getVisibleCells() as cell (cell.id)}
-								<Table.Cell class={(cell.column.columnDef.meta as ColumnMeta | undefined)?.cellClass}>
+								<Table.Cell
+									class={(cell.column.columnDef.meta as ColumnMeta | undefined)?.cellClass}
+								>
 									<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
 								</Table.Cell>
 							{/each}

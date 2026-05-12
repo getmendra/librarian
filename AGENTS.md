@@ -24,4 +24,5 @@ Read-only Iceberg catalog explorer for Cloudflare R2 Data Catalog.
 - No SQL query support
 
 ## Svelte
+
 Always read https://svelte.dev/docs/svelte/best-practices
