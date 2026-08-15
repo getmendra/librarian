@@ -1,6 +1,6 @@
-import type { ColumnDef } from "@tanstack/table-core";
-import { renderComponent } from "$lib/components/ui/data-table";
+import { createColumnHelper, renderComponent } from "@tanstack/svelte-table";
 import DataTableFormatCell from "./data-table-format-cell.svelte";
+import type { DataTableFeatures } from "./data-table-features";
 import DataTableNameCell from "./data-table-name-cell.svelte";
 import DataTableSortButton from "./data-table-sort-button.svelte";
 
@@ -18,10 +18,11 @@ type ColumnMeta = {
 	cellClass?: string;
 };
 
-export function getColumns(namespace: string): ColumnDef<NamespaceTableRow>[] {
-	return [
-		{
-			accessorKey: "name",
+const columnHelper = createColumnHelper<DataTableFeatures, NamespaceTableRow>();
+
+export function getColumns(namespace: string) {
+	return columnHelper.columns([
+		columnHelper.accessor("name", {
 			header: ({ column }) =>
 				renderComponent(DataTableSortButton, {
 					label: "Name",
@@ -34,9 +35,8 @@ export function getColumns(namespace: string): ColumnDef<NamespaceTableRow>[] {
 					name: row.original.name,
 				}),
 			enableHiding: false,
-		},
-		{
-			accessorKey: "formatVersion",
+		}),
+		columnHelper.accessor("formatVersion", {
 			header: "Format",
 			cell: ({ row }) =>
 				renderComponent(DataTableFormatCell, {
@@ -45,9 +45,8 @@ export function getColumns(namespace: string): ColumnDef<NamespaceTableRow>[] {
 			meta: {
 				headClass: "w-24",
 			} satisfies ColumnMeta,
-		},
-		{
-			accessorKey: "columns",
+		}),
+		columnHelper.accessor("columns", {
 			header: ({ column }) =>
 				renderComponent(DataTableSortButton, {
 					label: "Columns",
@@ -58,9 +57,8 @@ export function getColumns(namespace: string): ColumnDef<NamespaceTableRow>[] {
 				headClass: "w-24 text-right",
 				cellClass: "text-right text-muted-foreground",
 			} satisfies ColumnMeta,
-		},
-		{
-			accessorKey: "totalRecords",
+		}),
+		columnHelper.accessor("totalRecords", {
 			header: ({ column }) =>
 				renderComponent(DataTableSortButton, {
 					label: "Records",
@@ -76,9 +74,8 @@ export function getColumns(namespace: string): ColumnDef<NamespaceTableRow>[] {
 				headClass: "w-32 text-right",
 				cellClass: "text-right font-mono text-sm text-muted-foreground",
 			} satisfies ColumnMeta,
-		},
-		{
-			accessorKey: "totalDataFiles",
+		}),
+		columnHelper.accessor("totalDataFiles", {
 			header: ({ column }) =>
 				renderComponent(DataTableSortButton, {
 					label: "Files",
@@ -94,9 +91,8 @@ export function getColumns(namespace: string): ColumnDef<NamespaceTableRow>[] {
 				headClass: "w-24 text-right",
 				cellClass: "text-right font-mono text-sm text-muted-foreground",
 			} satisfies ColumnMeta,
-		},
-		{
-			accessorKey: "lastUpdated",
+		}),
+		columnHelper.accessor("lastUpdated", {
 			header: ({ column }) =>
 				renderComponent(DataTableSortButton, {
 					label: "Updated",
@@ -105,13 +101,13 @@ export function getColumns(namespace: string): ColumnDef<NamespaceTableRow>[] {
 					sort: column.getIsSorted(),
 				}),
 			cell: ({ row }) => timeAgo(row.original.lastUpdated),
-			sortingFn: "datetime",
+			sortFn: "datetime",
 			meta: {
 				headClass: "w-32 text-right",
 				cellClass: "text-right text-sm text-muted-foreground",
 			} satisfies ColumnMeta,
-		},
-	];
+		}),
+	]);
 }
 
 function timeAgo(ms: number | null): string {
