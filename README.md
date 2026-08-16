@@ -25,8 +25,6 @@ Create a 1Password Environment for this deployment with these variables:
 - `CATALOG_URI`
 - `CATALOG_WAREHOUSE`
 - `NAMESPACE_SUFFIX_ORDER`
-- `CF_ACCESS_TEAM`
-- `POLICY_AUD`
 - `CATALOG_TOKEN`
 
 For local development, Varlock uses the 1Password desktop app/CLI integration:
@@ -41,6 +39,8 @@ For Cloudflare Workers Builds, set these build-time variables in the dashboard:
 - `APP_ENV=production`
 - `OP_SERVICE_ACCOUNT_TOKEN=<1Password service account token>`
 
+Before deploying, enable Cloudflare Access for the `librarian` Worker and protect **All traffic**. Production requests that do not include an authenticated Worker Access context receive a `403` response.
+
 Optional namespace ordering:
 
 - Set `NAMESPACE_SUFFIX_ORDER=bronze,silver,gold` to prioritize known suffixes on the final namespace segment, e.g. `tenant_bronze`, `tenant_silver`, `tenant_gold`.
@@ -53,7 +53,7 @@ pnpm install
 pnpm dev
 ```
 
-CF Access auth is bypassed in dev mode.
+Cloudflare Access protects the deployed Worker and is bypassed in dev mode.
 
 If you want to run the built Worker locally, use:
 
