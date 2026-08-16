@@ -1,24 +1,24 @@
-<script lang="ts" generics="TData, TValue">
+<script lang="ts" generics="TData extends RowData">
 	import { browser } from "$app/environment";
 	import {
 		type ColumnDef,
 		type ColumnFiltersState,
 		type PaginationState,
+		type RowData,
 		type SortingState,
 		type VisibilityState,
-		getCoreRowModel,
-		getFilteredRowModel,
-		getPaginationRowModel,
-		getSortedRowModel,
-	} from "@tanstack/table-core";
+		createTable,
+		createTableState,
+		FlexRender,
+	} from "@tanstack/svelte-table";
 	import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
 	import { useSearchParams } from "runed/kit";
 	import { Button } from "$lib/components/ui/button";
-	import { createSvelteTable, FlexRender } from "$lib/components/ui/data-table";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { Input } from "$lib/components/ui/input";
 	import { Skeleton } from "$lib/components/ui/skeleton";
 	import * as Table from "$lib/components/ui/table";
+	import { features, type DataTableFeatures } from "./data-table-features";
 	import { namespaceTableSearchParamsSchema, type SortKey } from "./search-params";
 
 	type ColumnMeta = {
@@ -26,8 +26,8 @@
 		cellClass?: string;
 	};
 
-	type DataTableProps<TData, TValue> = {
-		columns: ColumnDef<TData, TValue>[];
+	type DataTableProps<TData extends RowData> = {
+		columns: ColumnDef<DataTableFeatures, TData>[];
 		data: TData[];
 		filterColumn: string;
 		filterPlaceholder: string;
@@ -48,10 +48,13 @@
 		initialDir,
 		loading = false,
 		loadingRows = [],
-	}: DataTableProps<TData, TValue> = $props();
+	}: DataTableProps<TData> = $props();
 
-	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 100 });
-	let columnVisibility = $state<VisibilityState>({});
+	const [pagination, setPagination] = createTableState<PaginationState>({
+		pageIndex: 0,
+		pageSize: 100,
+	});
+	const [columnVisibility, setColumnVisibility] = createTableState<VisibilityState>({});
 	const searchParams = useSearchParams(namespaceTableSearchParamsSchema, {
 		pushHistory: false,
 		noScroll: true,
@@ -64,49 +67,34 @@
 	let sorting = $derived(getSortingState(currentSort, currentDir));
 	let columnFilters = $derived(getFilterState(filterColumn, currentFilter));
 
-	const table = createSvelteTable({
+	const table = createTable({
+		features,
 		get data() {
 			return data;
 		},
 		get columns() {
 			return columns;
 		},
-		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		onPaginationChange: (updater) => {
-			if (typeof updater === "function") {
-				pagination = updater(pagination);
-			} else {
-				pagination = updater;
-			}
-		},
+		onPaginationChange: setPagination,
 		onSortingChange: (updater) => {
 			const nextSorting = typeof updater === "function" ? updater(sorting) : updater;
 			if (!sameSortingState(sorting, nextSorting)) {
-				pagination = { ...pagination, pageIndex: 0 };
+				setPagination({ ...pagination(), pageIndex: 0 });
 				updateSortParams(nextSorting);
 			}
 		},
 		onColumnFiltersChange: (updater) => {
 			const nextFilters = typeof updater === "function" ? updater(columnFilters) : updater;
 			if (!sameFilterState(columnFilters, nextFilters)) {
-				pagination = { ...pagination, pageIndex: 0 };
+				setPagination({ ...pagination(), pageIndex: 0 });
 				const value = nextFilters.find((filter) => filter.id === filterColumn)?.value;
 				updateFilterParams(typeof value === "string" ? value : "");
 			}
 		},
-		onColumnVisibilityChange: (updater) => {
-			if (typeof updater === "function") {
-				columnVisibility = updater(columnVisibility);
-			} else {
-				columnVisibility = updater;
-			}
-		},
+		onColumnVisibilityChange: setColumnVisibility,
 		state: {
 			get pagination() {
-				return pagination;
+				return pagination();
 			},
 			get sorting() {
 				return sorting;
@@ -115,7 +103,7 @@
 				return columnFilters;
 			},
 			get columnVisibility() {
-				return columnVisibility;
+				return columnVisibility();
 			},
 		},
 	});
@@ -219,10 +207,7 @@
 								class={(header.column.columnDef.meta as ColumnMeta | undefined)?.headClass}
 							>
 								{#if !header.isPlaceholder}
-									<FlexRender
-										content={header.column.columnDef.header}
-										context={header.getContext()}
-									/>
+									<FlexRender {header} />
 								{/if}
 							</Table.Head>
 						{/each}
@@ -256,7 +241,7 @@
 								<Table.Cell
 									class={(cell.column.columnDef.meta as ColumnMeta | undefined)?.cellClass}
 								>
-									<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
+									<FlexRender {cell} />
 								</Table.Cell>
 							{/each}
 						</Table.Row>

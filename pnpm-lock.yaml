@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@tanstack/svelte-table':
+        specifier: ^9.1.2
+        version: 9.1.2(svelte@5.53.1)
       '@varlock/1password-plugin':
         specifier: ^0.3.5
         version: 0.3.5(varlock@0.9.1)
@@ -54,9 +57,6 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.2.0(vite@7.3.1(@types/node@22.19.11)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@tanstack/table-core':
-        specifier: ^8.21.3
-        version: 8.21.3
       '@types/node':
         specifier: ^22
         version: 22.19.11
@@ -1012,9 +1012,23 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7
 
-  '@tanstack/table-core@8.21.3':
-    resolution: {integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==}
-    engines: {node: '>=12'}
+  '@tanstack/store@0.11.1':
+    resolution: {integrity: sha512-mzTOBhypOuDJAy/D8n2MfUZ1HFkXnmSETviRyhqEC8LUE7/IZQExOTxMANj3KjTofYTkFNpBY67qaVrT41YccA==}
+
+  '@tanstack/svelte-store@0.12.1':
+    resolution: {integrity: sha512-ZFj8gyIWHZRYLv8RHp5jhnMhvw15g86KinotrUp9RfY7ygjkU3CcaMUytIdMJ4Xzq/9GqVlAphV9gFIGKRXWSw==}
+    peerDependencies:
+      svelte: ^5.0.0
+
+  '@tanstack/svelte-table@9.1.2':
+    resolution: {integrity: sha512-0tDbl4PAu7Z4+VKaGnJlsfrMTVrnbgsxEQwpVRxnot30psP1GcqbVGOTwA5tf45hX3NYbW3e/9KZerKBrlHO0A==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      svelte: ^5.0.0
+
+  '@tanstack/table-core@9.1.2':
+    resolution: {integrity: sha512-ONpWQeass1sfg80CWF1NSwQ8r3GiqxA2lT/EdqIcrDEPZ0Z+0mM94eQoFYLPN0Kztzj8TQVb2+PrSZSItqA61g==}
+    engines: {node: '>=20'}
 
   '@testing-library/svelte-core@1.0.0':
     resolution: {integrity: sha512-VkUePoLV6oOYwSUvX6ShA8KLnJqZiYMIbP2JW2t0GLWLkJxKGvuH5qrrZBV/X7cXFnLGuFQEC7RheYiZOW68KQ==}
@@ -2745,7 +2759,22 @@ snapshots:
       tailwindcss: 4.2.0
       vite: 7.3.1(@types/node@22.19.11)(jiti@2.6.1)(lightningcss@1.31.1)
 
-  '@tanstack/table-core@8.21.3': {}
+  '@tanstack/store@0.11.1': {}
+
+  '@tanstack/svelte-store@0.12.1(svelte@5.53.1)':
+    dependencies:
+      '@tanstack/store': 0.11.1
+      svelte: 5.53.1
+
+  '@tanstack/svelte-table@9.1.2(svelte@5.53.1)':
+    dependencies:
+      '@tanstack/svelte-store': 0.12.1(svelte@5.53.1)
+      '@tanstack/table-core': 9.1.2
+      svelte: 5.53.1
+
+  '@tanstack/table-core@9.1.2':
+    dependencies:
+      '@tanstack/store': 0.11.1
 
   '@testing-library/svelte-core@1.0.0(svelte@5.53.1)':
     dependencies:
