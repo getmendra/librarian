@@ -26,3 +26,6 @@ Read-only Iceberg catalog explorer for Cloudflare R2 Data Catalog.
 ## Svelte
 
 Always read https://svelte.dev/docs/svelte/best-practices
+
+- Never run `pnpm build` just for verfication
+- Never deploy from this repository or run any deployment command
