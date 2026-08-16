@@ -3,15 +3,9 @@ import { defineConfig } from "vitest/config";
 import { playwright } from "@vitest/browser-playwright";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { varlockSvelteKitCloudflarePlugin } from "@varlock/cloudflare-integration/sveltekit";
-import { cloudflareAccessProbe } from "./vite-plugins/cloudflare-access-probe";
 
 export default defineConfig({
-	plugins: [
-		varlockSvelteKitCloudflarePlugin(),
-		tailwindcss(),
-		sveltekit(),
-		cloudflareAccessProbe(),
-	],
+	plugins: [varlockSvelteKitCloudflarePlugin(), tailwindcss(), sveltekit()],
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
